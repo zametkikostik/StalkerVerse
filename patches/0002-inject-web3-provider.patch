@@ -1,0 +1,13 @@
+Subject: [PATCH 0002] Inject Web3 ethereum provider (resilient integration guide)
+
+Stable injection points for Chromium main / M130+.
+
+POINT 1: chrome/renderer/chrome_content_renderer_client.cc
+  In RenderFrameCreated: new web3::Web3RenderFrameObserver(render_frame);
+
+POINT 2-3: chrome/renderer/web3/web3_render_frame_observer.{h,cc}
+  DidCreateDocumentElement -> ExecuteScript(kEthereumProviderScript)
+
+POINT 4: chrome/renderer/BUILD.gn add sources
+
+WebView alternative: WebViewCompat.addDocumentStartJavaScript

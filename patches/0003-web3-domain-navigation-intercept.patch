@@ -1,0 +1,6 @@
+Subject: [PATCH 0003] Web3 domain navigation intercept
+
+POINT 1: Omnibox - detect .eth .crypto .nft .wallet and ipfs:// ar://
+POINT 2: Web3DomainResolverService async Resolve -> LoadURL
+POINT 3: Optional protocol handlers for ipfs:// ar://
+WebView: shouldOverrideUrlLoading + resolver.js
