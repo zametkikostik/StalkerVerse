@@ -1,51 +1,38 @@
-# Web3 Chromium Browser (StalkerVerse)
+# StalkerVerse — Web3 Chromium Browser
 
-Полноценный форк Chromium для Android с нативной поддержкой Web3, децентрализованных доменов, защитой от DPI и privacy-friendly таргетингом рекламы.
+Web3 mobile browser stack: Chromium-oriented architecture with Web3 provider, ENS/UD domains, DPI protection, HD wallet + WalletConnect, on-device ads.
 
-> **Репозиторий:** https://github.com/zametkikostik/StalkerVerse
+**Repo:** https://github.com/zametkikostik/StalkerVerse
 
-> **Статус**: Каркас + рабочие модули. Web3 provider, DPI-proxy, патчи инжекции, Compose UI, HD-wallet, on-device ads.
+## What's included
 
-## Цели проекта
+| Area | Path |
+|------|------|
+| Android shell | `android/` — MainActivity, Compose UI, DPI Service, Wallet |
+| Web3 provider | `modules/web3/ethereum_provider.js` |
+| Domain resolver | `modules/domain-resolver/` |
+| DPI proxy | `modules/dpi-proxy/dpi_proxy.py` |
+| Chromium guides | `patches/`, `scripts/` |
+| Docs | `docs/` |
 
-- База: актуальный Chromium (Android)
-- Web3: инъекция `window.ethereum` + WalletConnect v2 + поддержка основных сетей
-- Домены: `.eth`, Unstoppable Domains, IPFS, Handshake и кастомные TLD
-- DPI Protection: локальный proxy с фрагментацией ClientHello/SNI
-- Реклама: on-device интересы + явное согласие пользователя
-- Privacy-first: минимум телеметрии
-
-## Быстрый старт (Android debug APK)
+## Quick start (Android debug)
 
 ```bash
 cd android
 cp local.properties.example local.properties
-# укажи sdk.dir и reown.project.id
+# set sdk.dir and reown.project.id
 ./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Подробнее: [docs/BUILD_ANDROID.md](docs/BUILD_ANDROID.md)
-
-## Сборка Chromium + патчи
+## Chromium full build
 
 ```bash
 ./scripts/fetch_and_patch_chromium.sh ~/chromium
-cd ~/chromium/src
-gn args out/Web3Default   # см. scripts/args.gn.template
+cd ~/chromium/src && gn args out/Web3Default  # see scripts/args.gn.template
 autoninja -C out/Web3Default chrome_public_apk
 ```
 
-## Структура
+## License
 
-```
-android/     # Compose UI, WebView shell, DPI Service, Wallet
-modules/     # web3 provider, domain-resolver, dpi-proxy, ads
-patches/     # Chromium integration guides 0002/0003
-scripts/     # fetch, patch, injection prepare
-docs/        # BUILD, ARCHITECTURE, WALLET, ADS
-```
-
-## Лицензия
-
-Код проекта — Apache 2.0. Chromium — BSD-3-Clause.
+Apache-2.0 (project code). Chromium is BSD-3-Clause.
