@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Web3 Provider Test</title>
+  <style>
+    body { font-family: system-ui; max-width: 720px; margin: 40px auto; padding: 0 16px; background: #0f1115; color: #eee; }
+    button { margin: 4px; padding: 8px 14px; cursor: pointer; }
+    pre { background: #1a1d24; padding: 12px; border-radius: 8px; min-height: 80px; }
+  </style>
+</head>
+<body>
+  <h1>window.ethereum test</h1>
+  <p id="status">Loading provider…</p>
+  <button id="connect">eth_requestAccounts</button>
+  <button id="chain">eth_chainId</button>
+  <button id="sign">personal_sign</button>
+  <pre id="log"></pre>
+  <script src="mock_native_bridge.js"></script>
+  <script src="ethereum_provider.js"></script>
+  <script>
+    const log = (x) => { document.getElementById('log').textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2); };
+    document.getElementById('status').textContent = window.ethereum?.isWeb3Browser
+      ? 'Provider OK (isWeb3Browser)' : 'Provider missing';
+    document.getElementById('connect').onclick = async () => {
+      try { log(await window.ethereum.request({ method: 'eth_requestAccounts' })); }
+      catch (e) { log(String(e)); }
+    };
+    document.getElementById('chain').onclick = async () => {
+      try { log(await window.ethereum.request({ method: 'eth_chainId' })); }
+      catch (e) { log(String(e)); }
+    };
+    document.getElementById('sign').onclick = async () => {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        log(await window.ethereum.request({ method: 'personal_sign', params: ['hello web3', accounts[0]] }));
+      } catch (e) { log(String(e)); }
+    };
+  </script>
+</body>
+</html>
