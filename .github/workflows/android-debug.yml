@@ -49,13 +49,18 @@ jobs:
       - name: Ensure Gradle Wrapper
         working-directory: android
         run: |
-          if [ ! -f gradlew ]; then
-            echo "Installing Gradle to generate wrapper…"
+          NEED_WRAPPER=0
+          if [ ! -f gradlew ] || [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            NEED_WRAPPER=1
+          fi
+          if [ "$NEED_WRAPPER" = "1" ]; then
+            echo "Generating Gradle wrapper (gradle 8.7)…"
             curl -sL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o /tmp/gradle.zip
-            sudo unzip -q /tmp/gradle.zip -d /opt
+            sudo unzip -qo /tmp/gradle.zip -d /opt
             /opt/gradle-8.7/bin/gradle wrapper --gradle-version 8.7
           fi
           chmod +x gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
           ./gradlew --version
 
       - name: Setup Gradle cache
@@ -80,7 +85,7 @@ jobs:
             echo "### Android debug build"
             echo ""
             if [ -d android/app/build/outputs/apk/debug ]; then
-              echo "APK:"
+              echo "APK files:"
               ls -lh android/app/build/outputs/apk/debug/
             else
               echo "No APK directory (build may have failed)."
