@@ -3,14 +3,8 @@ name: Android Debug APK
 on:
   push:
     branches: [main, master]
-    paths:
-      - "android/**"
-      - ".github/workflows/android-debug.yml"
   pull_request:
     branches: [main, master]
-    paths:
-      - "android/**"
-      - ".github/workflows/android-debug.yml"
   workflow_dispatch:
 
 concurrency:
@@ -37,29 +31,35 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Accept Android licenses
-        run: |
-          yes | sdkmanager --licenses >/dev/null || true
+        run: yes | sdkmanager --licenses >/dev/null || true
 
       - name: Create local.properties
         working-directory: android
+        env:
+          REOWN_PROJECT_ID: ${{ secrets.REOWN_PROJECT_ID }}
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          # Placeholder Project ID — replace via repo secret REOWN_PROJECT_ID for real WC
-          echo "reown.project.id=${{ secrets.REOWN_PROJECT_ID || 'github-actions-placeholder' }}" >> local.properties
+          if [ -n "$REOWN_PROJECT_ID" ]; then
+            echo "reown.project.id=$REOWN_PROJECT_ID" >> local.properties
+          else
+            echo "reown.project.id=github-actions-placeholder" >> local.properties
+            echo "::warning::REOWN_PROJECT_ID secret not set — WalletConnect will use placeholder"
+          fi
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
-
-      - name: Grant execute permission for gradlew
+      - name: Ensure Gradle Wrapper
         working-directory: android
         run: |
           if [ ! -f gradlew ]; then
-            echo "gradlew missing — generating wrapper"
-            gradle wrapper --gradle-version 8.7
+            echo "Installing Gradle to generate wrapper…"
+            curl -sL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o /tmp/gradle.zip
+            sudo unzip -q /tmp/gradle.zip -d /opt
+            /opt/gradle-8.7/bin/gradle wrapper --gradle-version 8.7
           fi
           chmod +x gradlew
+          ./gradlew --version
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
         working-directory: android
@@ -73,7 +73,16 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Summary
+      - name: Job summary
+        if: always()
         run: |
-          echo "### Debug APK built" >> $GITHUB_STEP_SUMMARY
-          ls -lh android/app/build/outputs/apk/debug/ >> $GITHUB_STEP_SUMMARY || true
+          {
+            echo "### Android debug build"
+            echo ""
+            if [ -d android/app/build/outputs/apk/debug ]; then
+              echo "APK:"
+              ls -lh android/app/build/outputs/apk/debug/
+            else
+              echo "No APK directory (build may have failed)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
