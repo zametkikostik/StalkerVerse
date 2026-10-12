@@ -9,13 +9,15 @@
 ## Phase 1 — Browser shell
 - [x] Tabs, omnibox, history, bookmarks, settings (web preview)
 - [x] i18n EN / RU / BG
+- [x] Branding recipe for Android product strings
 - [ ] Native Android UI on Chromium shell
 
 ## Phase 2 — Web3 names
 - [x] Pure `classifyHostname` + provider registry design
 - [x] ENS resolve + contenthash (IPNS identity DNSLink)
+- [x] Navigation interceptor design + Android `NavigationGate` / `NamespaceClassifier`
+- [ ] Native NetworkService / omnibox hook wired inside Chromium tree
 - [ ] HNS / UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
-- [ ] Native NetworkService hook: intercept navigation before DNS
 
 ## Phase 3 — DNS privacy
 - [x] AdGuard DoH/DoT/DoQ profile constants
