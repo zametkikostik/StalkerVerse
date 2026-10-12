@@ -18,9 +18,10 @@
 - [x] Navigation interceptor design + Android `NavigationGate` / `NamespaceClassifier`
 - [x] `ContenthashDecoder` + `EnsContenthash` (Java)
 - [x] Full ENS namehash + eth_call (resolver/contenthash/addr/url) in Java
+- [x] HNS production resolver (HNS DoH wire + hns.to gateway, TS + tests)
 - [ ] Native NetworkService / omnibox hook wired inside Chromium tree
 - [ ] End-to-end native test against publicnode on device/emulator
-- [ ] HNS / UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
+- [ ] UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
 
 ## Phase 3 — DNS privacy
 - [x] AdGuard DoH/DoT/DoQ profile constants (TS + Java `DnsProfiles`)

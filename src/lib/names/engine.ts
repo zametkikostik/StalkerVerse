@@ -1,9 +1,9 @@
 /** Top-level resolve: classify first, then provider. Never DNS for Web3 path. */
 import { classifyHostname } from "./detector.ts";
 import { resolveEns } from "./ens-resolve.ts";
+import { resolveHns } from "./hns-resolve.ts";
 import {
   resolveEmerdnsStub,
-  resolveHnsStub,
   resolveNamecoinStub,
   resolveSnsStub,
   resolveTezosStub,
@@ -35,7 +35,7 @@ export async function resolveHostname(hostname: string): Promise<{
       result = await resolveEns(host);
       break;
     case "hns":
-      result = resolveHnsStub(host);
+      result = await resolveHns(host);
       break;
     case "uns":
       result = resolveUnsStub(host);
