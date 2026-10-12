@@ -17,8 +17,9 @@
 - [x] ENS resolve + contenthash (IPNS identity DNSLink) — TS + Java decoder
 - [x] Navigation interceptor design + Android `NavigationGate` / `NamespaceClassifier`
 - [x] `ContenthashDecoder` + `EnsContenthash` (Java)
+- [x] Full ENS namehash + eth_call (resolver/contenthash/addr/url) in Java
 - [ ] Native NetworkService / omnibox hook wired inside Chromium tree
-- [ ] Full ENS eth_call (namehash) in native layer
+- [ ] End-to-end native test against publicnode on device/emulator
 - [ ] HNS / UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
 
 ## Phase 3 — DNS privacy
