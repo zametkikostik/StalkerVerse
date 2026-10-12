@@ -2,86 +2,129 @@
 
 **Privacy-first Chromium browser with native Web3 naming**
 
+Не форк Brave. Не обёртка над WebView.  
+Чистый **Chromium overlay** + свой слой StalkerVerse (MPL-2.0).
+
 ```
 Chromium (Blink · V8 · Network · Sandbox)
         │
         ▼
 StalkerVerse Layer
 ├── Web3 Domain Engine   (ENS · HNS · UNS · SNS · TON · Tezos · Namecoin · EmerDNS)
-├── DNS Privacy Engine   (AdGuard DoH / DoT / DoQ — Web2 only)
-├── DApp Bridge          (EIP-1193 / EIP-6963)
-├── Wallet Vault         (Android Keystore, local only)
+├── DNS Privacy Engine   (AdGuard DoH / DoT / DoQ — только Web2)
+├── DApp Bridge          (EIP-1193 / EIP-6963) — planned
+├── Wallet Vault         (Android Keystore) — planned
 ├── Privacy Controls     (anti-FP, ECH/QUIC, no telemetry)
-├── Battery Optimizer
+├── Battery Optimizer    — planned
 └── Multilingual UI      (EN / RU / BG)
 ```
 
-Not a Brave fork. Not a WebView wrapper. Clean Chromium overlay + modular StalkerVerse layer.
+**Pinned Chromium:** `154.0.8037.126` · **Target:** `chrome_public_apk` (Android arm64)
 
-## Status
+---
 
-| Phase | Goal | State |
-|-------|------|--------|
-| **0** | Pinned Chromium, build scripts, empty overlay | **in progress** |
-| **1** | Full browser UI (tabs, omnibox, history, bookmarks, settings, i18n) | preview done |
-| **2** | Namespace detector + Web3 resolve (before public DNS) | engine ready |
-| **3** | Encrypted DNS profiles + privacy controls | profiles defined |
-| **4** | DApp bridge | planned |
-| **5** | Local wallet vault | planned |
-| **6** | Contextual ads + stablecoin escrow (off by default) | planned |
-| **7** | Battery-aware architecture | planned |
-| **8** | CI APK on large/self-hosted runner | scripts ready |
+## Собрать браузер
 
-**Pinned Chromium:** `154.0.8037.126`  
-**Android target:** `chrome_public_apk`
+Полная инструкция: **[BUILD.md](BUILD.md)**
 
-## Hard rules
-
-1. **Classify hostname before any public DNS call.** `.eth` never hits AdGuard/system DNS.
-2. **No IP rewrite** for unresolved Web3 names.
-3. **Contenthash → IPFS/IPNS/Arweave** with explicit gateway trust banner.
-4. **No telemetry.** No private keys leave the device.
-5. **No DPI bypass in V1** — network privacy = encrypted DNS, ECH/QUIC, anti-tracking only.
-
-## Quick start (overlay + docs)
+Кратко (нужен сервер ~64 GB RAM, ~600 GB диск):
 
 ```bash
 git clone https://github.com/zametkikostik/StalkerVerse.git
 cd StalkerVerse
-# Phase 0 Chromium fetch (needs ~600 GB disk, 64 GB RAM recommended)
-./scripts/fetch-chromium.sh
+export PATH="$HOME/depot_tools:$PATH"   # см. BUILD.md
+
+./scripts/check-runner.sh
+./scripts/fetch-chromium.sh             # часы
 ./scripts/apply-overlay.sh
 ./scripts/build-apk.sh
+
+adb install -r artifacts/stalkerverse-chrome_public_apk.apk
 ```
 
-## Web3 resolve (TypeScript reference)
+На **бесплатном** GitHub-hosted Action полный Chromium **не** собирается.  
+Там гоняются только тесты имён.
 
-Pure client classification lives in `src/lib/names/`.  
-RPC resolve (ENS via Ethereum public nodes) is server-side or native in the final APK.
+---
+
+## Проверить Web3-логику без сервера
+
+```bash
+git clone https://github.com/zametkikostik/StalkerVerse.git
+cd StalkerVerse
+npm test
+# 15 tests: classifier, ENS (uniswap.eth), HNS DoH
+```
 
 ```ts
-classifyHostname("uniswap.eth")  // → { path: "web3", provider: "ens" }
-// never calls public DNS
-
-classifyHostname("example.com")  // → { path: "web2" }
-// only then AdGuard DoH / system DNS
+classifyHostname("uniswap.eth")  // web3 / ens — без public DNS
+classifyHostname("nathan.woodburn") // web3 / hns
+classifyHostname("example.com")   // web2 — только потом DoH
 ```
 
-## License inventory
+---
 
-- Chromium upper layers: **BSD 3-Clause**
-- StalkerVerse layer: **MPL-2.0** (this repo)
-- Keep a clean SBOM separate from Brave Core (MPL) to avoid product coupling
+## Структура репозитория
 
-## Docs
+```
+StalkerVerse/
+├── BUILD.md                 ← как собрать APK
+├── README.md
+├── LICENSE                  ← MPL-2.0
+├── package.json
+├── scripts/                 ← fetch / overlay / build / preflight
+├── src/lib/names/           ← ENS, HNS, engine, tests
+├── src/lib/dns/
+├── android/java/org/stalkerverse/
+├── chromium/patches/        ← recipes 0001–0003
+├── docs/
+└── .github/workflows/
+```
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [DOMAIN-RESOLUTION.md](docs/DOMAIN-RESOLUTION.md)
-- [PRIVACY-MODEL.md](docs/PRIVACY-MODEL.md)
-- [ROADMAP.md](docs/ROADMAP.md)
-- [GROK-MASTER-PROMPT.md](docs/GROK-MASTER-PROMPT.md)
+Полный список: [docs/REPO-CONTENTS.md](docs/REPO-CONTENTS.md)
+
+---
+
+## Статус
+
+| Фаза | Что | Состояние |
+|------|-----|-----------|
+| 0 | Скрипты + pin Chromium | **готово** — ждёт машину |
+| 0 | Первый green APK | **не собран** (нет runner) |
+| 1 | Browser shell native | после APK |
+| 2 | ENS + HNS + classifier | **готово + тесты** |
+| 2 | Omnibox hook в Chromium | после APK |
+| 3 | AdGuard DoH в Chromium | recipe есть |
+| 4–8 | DApp, wallet, ads, battery, release | planned |
+
+---
+
+## Жёсткие правила
+
+1. **Classify hostname до любого public DNS.**
+2. **Нет IP-rewrite** без verified contenthash / A-записи.
+3. Contenthash → gateway с явным trust.
+4. **Нет telemetry.**
+5. V1 без DPI-обхода.
+
+---
+
+## Документация
+
+- [BUILD.md](BUILD.md) — **сборка APK**
+- [docs/SELF-HOSTED-APK.md](docs/SELF-HOSTED-APK.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/DOMAIN-RESOLUTION.md](docs/DOMAIN-RESOLUTION.md)
+- [docs/NAVIGATION-INTERCEPTOR.md](docs/NAVIGATION-INTERCEPTOR.md)
+- [docs/PRIVACY-MODEL.md](docs/PRIVACY-MODEL.md)
+- [docs/ROADMAP.md](docs/ROADMAP.md)
+- [docs/REPO-CONTENTS.md](docs/REPO-CONTENTS.md)
+- [android/BUILD.overlay.md](android/BUILD.overlay.md)
+
+## Лицензии
+
+- StalkerVerse: **MPL-2.0** · Chromium: **BSD-style** (upstream)
 
 ## Contributing
 
-Phase order is strict: **buildable APK before more Web3 features.**  
-PRs that break “namespace before DNS” will be rejected.
+Порядок: **сначала green APK, потом фичи.**
