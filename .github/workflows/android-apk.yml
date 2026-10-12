@@ -1,0 +1,50 @@
+# Phase 0/1 — Chromium APK on large / self-hosted runners only.
+# Default GitHub-hosted 7 GB runners cannot build Chromium.
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "chromium/**"
+      - "scripts/**"
+      - "android/**"
+      - ".github/workflows/android-apk.yml"
+
+jobs:
+  build-apk:
+    runs-on: [self-hosted, linux, x64, stalkerverse-chromium]
+    timeout-minutes: 720
+    env:
+      CHROMIUM_VERSION: "154.0.8037.126"
+      CHROMIUM_SRC: ${{ github.workspace }}/chromium-src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure depot_tools
+        run: |
+          if [[ ! -d "$HOME/depot_tools" ]]; then
+            git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+          fi
+          echo "$HOME/depot_tools" >> "$GITHUB_PATH"
+
+      - name: Fetch Chromium (cached tree recommended)
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/fetch-chromium.sh
+
+      - name: Apply StalkerVerse overlay
+        run: ./scripts/apply-overlay.sh
+
+      - name: Build chrome_public_apk
+        run: ./scripts/build-apk.sh
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: stalkerverse-apk
+          path: |
+            chromium-src/out/StalkerVerse/**/*.apk
+          if-no-files-found: warn
+          retention-days: 14
