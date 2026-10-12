@@ -1,37 +1,29 @@
 #!/usr/bin/env bash
-# Phase 0: fetch pinned Chromium for Android APK builds.
-# Requires: depot_tools, ~600 GB free disk, high-memory machine.
 set -euo pipefail
-
 PINNED_VERSION="${CHROMIUM_VERSION:-154.0.8037.126}"
+PINNED_REVISION="${CHROMIUM_REVISION:-}"
 SRC_DIR="${CHROMIUM_SRC:-$HOME/chromium/src}"
-
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "[stalkerverse] Pinned Chromium: $PINNED_VERSION"
-echo "[stalkerverse] Target src: $SRC_DIR"
-
-if ! command -v fetch >/dev/null 2>&1; then
-  echo "depot_tools not on PATH. Install: https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html"
-  exit 1
+if [[ "${SKIP_PREFLIGHT:-0}" != "1" ]] && [[ -x "$ROOT/scripts/check-runner.sh" ]]; then
+  "$ROOT/scripts/check-runner.sh" || { echo "Preflight failed"; exit 1; }
 fi
-
+if ! command -v fetch >/dev/null 2>&1; then
+  echo "depot_tools not on PATH"; exit 1
+fi
 mkdir -p "$(dirname "$SRC_DIR")"
-cd "$(dirname "$SRC_DIR")"
-
-if [[ ! -d "$SRC_DIR" ]]; then
+PARENT="$(dirname "$SRC_DIR")"
+cd "$PARENT"
+if [[ ! -d "$SRC_DIR" ]] && [[ ! -f .gclient ]]; then
   echo "[stalkerverse] fetch --nohooks android..."
   fetch --nohooks android
 fi
-
+if [[ ! -d "$SRC_DIR" ]] && [[ -d "$PARENT/src" ]]; then SRC_DIR="$PARENT/src"; fi
+if [[ ! -d "$SRC_DIR" ]]; then echo "src not found"; exit 1; fi
 cd "$SRC_DIR"
-echo "[stalkerverse] sync to $PINNED_VERSION"
-git fetch --tags origin
-# Prefer tag if present; else use version string documented in release notes
-if git rev-parse "$PINNED_VERSION" >/dev/null 2>&1; then
-  git checkout "$PINNED_VERSION"
-else
-  echo "[stalkerverse] WARNING: tag $PINNED_VERSION not found locally — set CHROMIUM_REVISION explicitly"
-fi
-
+git fetch --tags origin 2>/dev/null || true
+if [[ -n "$PINNED_REVISION" ]]; then git checkout "$PINNED_REVISION"
+elif git rev-parse "$PINNED_VERSION" >/dev/null 2>&1; then git checkout "$PINNED_VERSION"
+else echo "WARNING: ref $PINNED_VERSION not found — set CHROMIUM_REVISION"; fi
 gclient sync --with_branch_heads --with_tags -D
-
-echo "[stalkerverse] fetch complete. Next: ./scripts/apply-overlay.sh"
+echo "[stalkerverse] fetch complete → apply-overlay.sh && build-apk.sh"

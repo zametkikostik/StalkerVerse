@@ -4,6 +4,7 @@
 - [x] Pin revision `154.0.8037.126`
 - [x] `scripts/fetch-chromium.sh`, `apply-overlay.sh`, `build-apk.sh`
 - [x] GitHub Actions workflow for large/self-hosted runners
+- [x] `scripts/check-runner.sh` + `docs/SELF-HOSTED-APK.md`
 - [ ] First green `chrome_public_apk` on runner
 
 ## Phase 1 — Browser shell
@@ -14,35 +15,19 @@
 
 ## Phase 2 — Web3 names
 - [x] Pure `classifyHostname` + provider registry design
-- [x] ENS resolve + contenthash (IPNS identity DNSLink) — TS + Java decoder
-- [x] Navigation interceptor design + Android `NavigationGate` / `NamespaceClassifier`
-- [x] `ContenthashDecoder` + `EnsContenthash` (Java)
-- [x] Full ENS namehash + eth_call (resolver/contenthash/addr/url) in Java
-- [x] HNS production resolver (HNS DoH wire + hns.to gateway, TS + tests)
-- [ ] Native NetworkService / omnibox hook wired inside Chromium tree
-- [ ] End-to-end native test against publicnode on device/emulator
+- [x] ENS resolve + contenthash — TS + Java
+- [x] Navigation interceptor design + Android NavigationGate
+- [x] ContenthashDecoder + EnsContenthash (Java)
+- [x] Full ENS namehash + eth_call in Java
+- [x] HNS production resolver (HNS DoH + hns.to, TS + tests)
+- [ ] Native omnibox hook inside Chromium tree
+- [ ] End-to-end native test on device/emulator
 - [ ] UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
 
 ## Phase 3 — DNS privacy
-- [x] AdGuard DoH/DoT/DoQ profile constants (TS + Java `DnsProfiles`)
+- [x] AdGuard DoH/DoT/DoQ profiles (TS + Java)
 - [x] DNS profile patch recipe `0002`
 - [ ] Wire into Chromium DNS client for Web2 only
 
-## Phase 4 — DApp bridge
-- [ ] EIP-1193 injection
-- [ ] EIP-6963
-
-## Phase 5 — Wallet vault
-- [ ] BIP39 + Keystore
-- [ ] Sign typed data / transactions with user confirm
-
-## Phase 6 — Ads (optional)
-- [ ] Local contextual only
-- [ ] Stablecoin escrow model
-- [ ] Default OFF
-
-## Phase 7 — Battery
-- [ ] Renderer freeze, RPC cache TTL, no background poll
-
-## Phase 8 — Release
-- [ ] SBOM, privacy audit checklist, signed APK pipeline
+## Phase 4–8
+- DApp bridge, wallet, ads, battery, SBOM — not started

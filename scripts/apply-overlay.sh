@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
-# Apply StalkerVerse patches onto Chromium src tree (out of tree overlay).
 set -euo pipefail
-
 SRC_DIR="${CHROMIUM_SRC:-$HOME/chromium/src}"
 OVERLAY_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PATCH_DIR="$OVERLAY_ROOT/chromium/patches"
-
-if [[ ! -d "$SRC_DIR" ]]; then
-  echo "Chromium src not found at $SRC_DIR — run fetch-chromium.sh first"
-  exit 1
+JAVA_SRC="$OVERLAY_ROOT/android/java/org/stalkerverse"
+JAVA_DST="$SRC_DIR/chrome/android/java/src/org/stalkerverse"
+if [[ ! -d "$SRC_DIR" ]]; then echo "no Chromium at $SRC_DIR"; exit 1; fi
+if [[ -d "$JAVA_SRC" ]]; then
+  mkdir -p "$JAVA_DST"
+  if command -v rsync >/dev/null 2>&1; then rsync -a --delete "$JAVA_SRC/" "$JAVA_DST/"
+  else cp -a "$JAVA_SRC/." "$JAVA_DST/"; fi
 fi
-
-echo "[stalkerverse] Applying patches from $PATCH_DIR"
 shopt -s nullglob
-for p in "$PATCH_DIR"/*.patch; do
-  echo "  → $(basename "$p")"
-  git -C "$SRC_DIR" apply --verbose --reject --whitespace=fix "$p" || {
-    echo "Patch failed: $p"
-    exit 1
-  }
-done
-
-if [[ -d "$OVERLAY_ROOT/android" ]]; then
-  echo "[stalkerverse] Overlay android resources staged (manual merge into chrome/android as needed)"
+PATCHES=("$PATCH_DIR"/*.patch)
+if [[ ${#PATCHES[@]} -eq 0 ]]; then
+  echo "[stalkerverse] No *.patch — stock chrome_public_apk OK for first green"
+else
+  cd "$SRC_DIR"
+  for p in $(printf '%s\n' "${PATCHES[@]}" | sort); do
+    git apply --check "$p" && git apply "$p"
+  done
 fi
-
-echo "[stalkerverse] Overlay applied. Next: ./scripts/build-apk.sh"
+shopt -u nullglob
+mkdir -p "$SRC_DIR/stalkerverse"
+echo "overlay_applied=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >"$SRC_DIR/stalkerverse/OVERLAY_STAMP"
+echo "[stalkerverse] overlay applied"
