@@ -1,9 +1,13 @@
-# Phase 0/1 — Chromium APK on large / self-hosted runners only.
-# Default GitHub-hosted 7 GB runners cannot build Chromium.
+# Phase 0 — Chromium APK on large / self-hosted runners only.
 name: Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_fetch:
+        description: "Skip fetch if tree already synced on runner"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -13,12 +17,25 @@ on:
       - ".github/workflows/android-apk.yml"
 
 jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash -n scripts
+        run: |
+          bash -n scripts/check-runner.sh
+          bash -n scripts/fetch-chromium.sh
+          bash -n scripts/apply-overlay.sh
+          bash -n scripts/build-apk.sh
+
   build-apk:
+    needs: syntax
     runs-on: [self-hosted, linux, x64, stalkerverse-chromium]
     timeout-minutes: 720
     env:
       CHROMIUM_VERSION: "154.0.8037.126"
       CHROMIUM_SRC: ${{ github.workspace }}/chromium-src
+      STALKERVERSE_ARTIFACTS: ${{ github.workspace }}/artifacts
     steps:
       - uses: actions/checkout@v4
 
@@ -29,10 +46,14 @@ jobs:
           fi
           echo "$HOME/depot_tools" >> "$GITHUB_PATH"
 
-      - name: Fetch Chromium (cached tree recommended)
+      - name: Preflight
         run: |
           chmod +x scripts/*.sh
-          ./scripts/fetch-chromium.sh
+          ./scripts/check-runner.sh || true
+
+      - name: Fetch Chromium
+        if: ${{ github.event.inputs.skip_fetch != true }}
+        run: ./scripts/fetch-chromium.sh
 
       - name: Apply StalkerVerse overlay
         run: ./scripts/apply-overlay.sh
@@ -45,6 +66,7 @@ jobs:
         with:
           name: stalkerverse-apk
           path: |
+            artifacts/*.apk
             chromium-src/out/StalkerVerse/**/*.apk
           if-no-files-found: warn
           retention-days: 14
