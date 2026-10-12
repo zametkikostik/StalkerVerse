@@ -1,23 +1,20 @@
 # Android GN overlay notes
 
-These Java sources under `android/java/org/stalkerverse/` are **not** compiled until copied or referenced from the Chromium tree’s `chrome/android` GN targets.
+Sources under `android/java/org/stalkerverse/` compile only after copy/symlink into Chromium `chrome/android`.
 
-## Integration steps (on build machine)
+## Integration steps
 
-1. Copy or symlink into Chromium, e.g.:
-   ```text
-   $CHROMIUM_SRC/chrome/android/java/src/org/stalkerverse/
-   ```
-2. Add to the appropriate `android_library` / `chrome_java` target in `chrome/android/BUILD.gn` (exact target name depends on pin 154).
-3. Depend on AndroidX annotations if not already on classpath (`androidx.annotation.Nullable`).
-4. For `EnsResolver`, ensure `org.json` is available (Android SDK provides it).
-5. Call `NavigationGate.decide(text)` from omnibox commit path (see `docs/NAVIGATION-INTERCEPTOR.md`).
+1. Copy to `$CHROMIUM_SRC/chrome/android/java/src/org/stalkerverse/`
+2. Add to `chrome_java` / `android_library` in `chrome/android/BUILD.gn`
+3. AndroidX annotations + `org.json` for EnsResolver
+4. Omnibox: `NavigationGate.decide(text)`
+5. Web2 DNS: apply `DnsProfiles` selected id to Chromium Secure DNS prefs
 
 ## Keep in sync
 
 | TypeScript | Java |
 |------------|------|
 | `src/lib/names/namespaces.ts` | `TldTables.java` |
-| `src/lib/names/match.ts` | `NamespaceClassifier.matchProviderId` |
-| `src/lib/names/detector.ts` | `NamespaceClassifier.classify*` |
-| `src/lib/names/contenthash.ts` | (next) `ContenthashDecoder.java` |
+| `src/lib/names/match.ts` / `detector.ts` | `NamespaceClassifier.java` |
+| `src/lib/names/contenthash.ts` | `ContenthashDecoder.java` |
+| `src/lib/dns/profiles.ts` | `dns/DnsProfiles.java` |
