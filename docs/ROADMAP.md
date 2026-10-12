@@ -14,13 +14,16 @@
 
 ## Phase 2 — Web3 names
 - [x] Pure `classifyHostname` + provider registry design
-- [x] ENS resolve + contenthash (IPNS identity DNSLink)
+- [x] ENS resolve + contenthash (IPNS identity DNSLink) — TS + Java decoder
 - [x] Navigation interceptor design + Android `NavigationGate` / `NamespaceClassifier`
+- [x] `ContenthashDecoder` + `EnsContenthash` (Java)
 - [ ] Native NetworkService / omnibox hook wired inside Chromium tree
+- [ ] Full ENS eth_call (namehash) in native layer
 - [ ] HNS / UNS / SNS / TON / Tezos / Namecoin / EmerDNS production resolvers
 
 ## Phase 3 — DNS privacy
-- [x] AdGuard DoH/DoT/DoQ profile constants
+- [x] AdGuard DoH/DoT/DoQ profile constants (TS + Java `DnsProfiles`)
+- [x] DNS profile patch recipe `0002`
 - [ ] Wire into Chromium DNS client for Web2 only
 
 ## Phase 4 — DApp bridge
